@@ -4,6 +4,7 @@ import prisma from './config/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { authenticateToken } from './authMiddleware';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
