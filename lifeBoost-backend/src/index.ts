@@ -73,6 +73,55 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/events', authenticateToken, async (req, res) => {
+    try {
+        const { title, required, duration, startTime} = req.body;
+        const userId = req.body.userId; // Extract from token
+
+        // Calculate end time based on duration
+        const endTime = new Date(Date.now() + duration*60000);
+
+        const event = await prisma.event.create({
+            data: { title, required, duration, startTime, endTime, userId }
+        });
+
+        res.json(event);
+    } catch (error) {
+        console.error('Error creating event:', error);
+        res.status(500).json({ error: 'Failed to create event' });
+    }
+});
+
+// Get all events for logged-in user
+app.get('/events', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.body.userId;
+
+        const events = await prisma.event.findMany({
+            where: { userId },
+            orderBy: { startTime: 'asc' }
+        });
+
+        res.json(events);
+    } catch (error) {
+        console.error('Error fetching events:', error);
+        res.status(500).json({ error: 'Failed to fetch events' });
+    }
+});
+
+// Delete an event
+app.delete('/events/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.event.delete({ where: { id }});
+
+        res.json({ message: 'Event deleted' });
+    } catch (error) {
+        console.error('Error deleting event: ', error);
+        res.status(500).json({ error: 'Failed to delete event' });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
